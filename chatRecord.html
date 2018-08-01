@@ -1,0 +1,112 @@
+﻿<html>
+<head>
+<title>测试专用</title>
+<style>
+    html {
+        height: 100%;
+        width: 100%;
+    }
+    *{
+     font-family:"微软雅黑"
+    }
+    #left {width:60%;height:100%;}
+    #right{width:40%;height:75%;}
+    #left,#right{float:left;}
+    #output {
+        width: 100%;
+        height: 80%;
+    }
+    .button  {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        padding: 2px 10px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+    .button:hover{
+        background-color:green;
+    }
+    .button:active{
+        background-color:#007500;
+    }
+</style>
+
+<!--引入qwebchannel.js的三种方式：方式1）服务端本地已经有qwebchannel.js，那么可以直接使用服务端的，
+  引用方式和普通js应用方式相同如下：
+<script type="text/javascript" src="./qwebchannel.js"></script>
+服务端本地没有qwebchannel.js，那么可以直接使用框架内部提供的qwebchannel.js，引用方式有两种
+方式2）如下：
+<script type="text/javascript" src="qrc:///qwebchannel.js"></script>
+方式3）如下：
+-->
+<script type="text/javascript" src="qrc:/qwebchannel.js"></script>
+<script type="text/javascript">
+
+//网页需要和C++交互 服务端需要导入qwebchannel.js 这个js文件
+window.onload = function() {
+    //初始化时候需要实例QWebChannel，
+    if (typeof qt != 'undefined') new QWebChannel(qt.webChannelTransport, function(channel) {
+        //窗口加载后初始化window自带对象ddcore 其实也是qml中被注册的对象DDCore
+        window.DDCore   = channel.objects.DDCore;
+        // 接受来自DDCore的信号连上本地的一个方法进行信息输出
+         window.DDCore.someSignal.connect(function(message) {
+             output("Got Signal: " + message);
+         });
+    });
+}
+
+function DDRefresh(data){
+    var jsonObj = data;
+    var title = document.getElementById("title");
+    title.innerHTML=data.title;
+    output("refresh callback--->" + JSON.stringify(data));
+}
+function getThisFilePath(){
+    var filepath = document.getElementById("lineedit").value;
+    if(filepath==""){
+        output("filepath is must be not empty!!!!!!")
+    }else{
+        window.DDCore.getThisFilePath(filepath,function(message) {
+            output("Got FilePath: " + message);
+        });
+    }
+};
+function output(message)
+{
+    var output = document.getElementById("output");
+    output.value = output.value + message + "\n";
+}
+
+function clearOutput(){
+    document.getElementById("output").value = "";
+    window.DDCore.clearText();
+}
+</script>
+
+</head>
+
+<body id="mbody"  bgcolor="#ffffff" align="center">
+    <div id="left">
+        <p align="center" style="color:grey" id="title">测试qml中使用html</p>
+        <img src="https://www.easyicon.net/download/png/1204391/128/"  align="center"  width="128" height="128">
+        <p align="center">
+        文件位置: <input  id="lineedit" type="text" value="文件全路径" name="property"/>
+        </p>
+        <p align="center">
+        <input type="button" class="button" value="读取文件内容" onclick="getThisFilePath()" />
+        </p>
+    </div>
+    <div id="right">
+        <p align="center" >信息输出:</p>
+        <textarea id="output"></textarea>
+        <p align="center" >
+            <input type="button" class="button" value="清除文本框内容" onclick="clearOutput()" />
+        </p>
+    </div>
+</body>
+</html>
